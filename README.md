@@ -1,6 +1,3 @@
-# jsonlib
-Simple JSON parsing library for arduino
-
 jsonlib
 =======
 Simple JSON parsing library for arduino
