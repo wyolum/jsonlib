@@ -34,4 +34,3 @@ String jsonExtract(String json, String name);
 ```
 
 Returns a String containing the named item from provided String containing a json object.
-Adds a custom time when the sun reaches the given angle to results returned by `SunCalc.getTimes`.
