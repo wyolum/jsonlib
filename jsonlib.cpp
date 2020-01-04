@@ -1,5 +1,39 @@
 #include "jsonlib.h"
 
+// remove all white space from the json string... preserving strings
+String jsonRemoveWhiteSpace(String json){
+  int i = 0;
+  int cursor = 0;
+  int quote_count = 0;
+  String out = String();
+  char out_chars[json.length()+1];
+  
+  for(i=0; i<json.length(); i++){
+    if(json[i] == ' ' || json[i] == '\n' || json[i] == '\t' || json[i] == '\r'){
+      if(quote_count % 2){ // inside a string
+	out_chars[cursor++] = json[i];
+      }
+      else{ // outside a string!
+      }
+    }
+    else{
+      if(json[i] == 34){ // ascii dounble quote
+	//check for escaped quote
+	if(i > 0 && json[i - 1] == '\\'){
+	  //escaped!
+	}
+	else{ // not escaped
+	  quote_count++;
+	}
+      }
+      out_chars[cursor++] = json[i];
+    }
+  }
+  out_chars[cursor] = 0;
+  out = String(out_chars);
+  return out;
+}
+
 String jsonIndexList(String json, int idx){
   int count = 1; // number of braces seen { = +1 } = -1
   int i = 1;
