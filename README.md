@@ -5,10 +5,8 @@ Simple JSON parsing library for arduino.
 ## Usage example
 
 ```c++
-  //Remove white space from json String
-  json.replace(" ", "");
-  json.replace("\t", "");
-  json.replace("\n", "");
+  //Remove white space (outside of string literals) from json String
+  json = jsonRemoveWhiteSpace(json);
   
   String posStr = jsonExtract(json, "coord");          // {"lon":-77.35,"lat":38.93}
   float lat = jsonExtract(posStr, "lat").toFloat();    // 38.93
@@ -24,6 +22,17 @@ Simple JSON parsing library for arduino.
 ```
 
 ## Reference
+
+### jsonRemoveWhiteSpace
+
+```c++
+String jsonRemoveWhiteSpace(String json);
+```
+
+Returns a String with white space outside of string literals removed.  For instance
+```c++
+{"testing" : "one, two, three"} ==> {"testing":"one, two, three"}
+```
 
 ### jsonIndexList
 
