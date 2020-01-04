@@ -1,10 +1,15 @@
 jsonlib
 =======
-Simple JSON parsing library for arduino
+Simple JSON parsing library for arduino.
 
 ## Usage example
 
 ```c++
+  //Remove white space from json String
+  json.replace(" ", "");
+  json.replace("\t", "");
+  json.replace("\n", "");
+  
   String posStr = jsonExtract(json, "coord");          // {"lon":-77.35,"lat":38.93}
   float lat = jsonExtract(posStr, "lat").toFloat();    // 38.93
   float lon = jsonExtract(posStr, "lon").toFloat();    // -77.35
