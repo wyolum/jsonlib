@@ -20,7 +20,7 @@ Simple JSON parsing library for arduino
 
 ## Reference
 
-### jsonIndex
+### jsonIndexList
 
 ```c++
 String jsonIndexList(String json, int idx);
