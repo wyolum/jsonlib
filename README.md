@@ -47,4 +47,4 @@ Returns a String containing indexed item from provided String containing a json 
 String jsonExtract(String json, String name);
 ```
 
-Returns a String containing the named item from provided String containing a json object.
+Returns a String containing the named item from provided String containing a json object. If name does not exist returns an empty String.
