@@ -30,6 +30,7 @@ struct WeatherStruct{
   float wind_speed;
   float wind_deg;
   float clouds_all;
+  String fog;
   uint32_t sys_sunrise;
   uint32_t sys_sunset;
   uint32_t weather_id;
@@ -54,6 +55,7 @@ void print_weather(struct WeatherStruct weather){
   Serial.print("    \"wind_speed\":");Serial.print(weather.wind_speed);Serial.println(",");
   Serial.print("    \"wind_deg\":");Serial.print(weather.wind_deg);Serial.println(",");
   Serial.print("    \"clouds_all\":");Serial.print(weather.clouds_all);Serial.println(",");
+  Serial.print("    \"fog\":\"");Serial.print(weather.fog);Serial.println("\",");
   Serial.print("    \"sys_sunrise\":");Serial.print(weather.sys_sunrise);Serial.println(",");
   Serial.print("    \"sys_sunset\":");Serial.print(weather.sys_sunset);Serial.println(",");
   Serial.print("    \"weather_id\":");Serial.println(weather.weather_id);
@@ -84,6 +86,10 @@ void get_weather(){
   my_weather.clouds_all = jsonExtract(jsonExtract(payload, "clouds"), "all").toFloat();
   if(abs(my_weather.clouds_all - 1.) < .1){
     my_weather.clouds_all = 100;
+  }
+  my_weather.fog = jsonExtract(payload, "fog");
+  if(my_weather.fog.length() == 0){
+     my_weather.fog = "Unavailable";
   }
   my_weather.sys_sunrise = jsonExtract(sys, "sunrise").toFloat();
   my_weather.sys_sunset = jsonExtract(sys, "sunset").toFloat();
