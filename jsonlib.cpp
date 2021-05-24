@@ -78,7 +78,7 @@ String jsonExtract(String json, String name){
   if(next == '\"'){
     //Serial.println(".. a string");
     start = start + 1;
-    stop = json.indexOf('"', start + 1);
+    stop = json.indexOf('"', start);
   }
   else if(next == '['){
     //Serial.println(".. a list");
