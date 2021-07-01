@@ -69,10 +69,11 @@ String jsonIndexList(String json, int idx){
 // return a sub-json struct
 String jsonExtract(String json, String name){
   char next;
-  int start, stop;
+  int start = 0, stop = 0;
+  static const size_t npos = -1;
   
   name = String("\"") + name + String("\"");
-  if (json.indexOf(name) == std::string::npos) return json.substring(0,0);
+  if (json.indexOf(name) == npos) return json.substring(0,0);
   start = json.indexOf(name) + name.length() + 1;
   next = json.charAt(start);
   if(next == '\"'){
@@ -111,7 +112,7 @@ String jsonExtract(String json, String name){
   else if(next == '.' || next == '-' || ('0' <= next  && next <= '9')){
     //Serial.println(".. a number");
     int i = start;
-    while(i++ < json.length() && json.charAt(i) == '.' || ('0' <= json.charAt(i)  && json.charAt(i) <= '9')){
+    while(i++ < json.length() && (json.charAt(i) == '.' || ('0' <= json.charAt(i)  && json.charAt(i) <= '9'))){
     }
     stop = i;
   }
