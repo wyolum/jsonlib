@@ -67,12 +67,13 @@ String jsonIndexList(const String& json, int idx){
 }
 
 // return a sub-json struct
-String jsonExtract(const String& json, const String& name){
+String jsonExtract(const String& json, const String& nameArg){
   char next;
   int start = 0, stop = 0;
   static const size_t npos = -1;
+  const String QUOTE = "\"";
   
-  name = String("\"") + name + String("\"");
+  String name = QUOTE + nameArg + QUOTE;
   if (json.indexOf(name) == npos) return json.substring(0,0);
   start = json.indexOf(name) + name.length() + 1;
   next = json.charAt(start);
