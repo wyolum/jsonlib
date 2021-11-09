@@ -1,7 +1,7 @@
 #include "jsonlib.h"
 
 // remove all white space from the json string... preserving strings
-String jsonRemoveWhiteSpace(String json){
+String jsonRemoveWhiteSpace(const String& json){
   int i = 0;
   int cursor = 0;
   int quote_count = 0;
@@ -34,7 +34,7 @@ String jsonRemoveWhiteSpace(String json){
   return out;
 }
 
-String jsonIndexList(String json, int idx){
+String jsonIndexList(const String& json, int idx){
   int count = 1; // number of braces seen { = +1 } = -1
   int i = 1;
   int item_idx = 0;
@@ -67,12 +67,13 @@ String jsonIndexList(String json, int idx){
 }
 
 // return a sub-json struct
-String jsonExtract(String json, String name){
+String jsonExtract(const String& json, const String& nameArg){
   char next;
   int start = 0, stop = 0;
   static const size_t npos = -1;
+  const String QUOTE = "\"";
   
-  name = String("\"") + name + String("\"");
+  String name = QUOTE + nameArg + QUOTE;
   if (json.indexOf(name) == npos) return json.substring(0,0);
   start = json.indexOf(name) + name.length() + 1;
   next = json.charAt(start);
