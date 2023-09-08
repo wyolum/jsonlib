@@ -77,6 +77,12 @@ String jsonExtract(const String& json, const String& nameArg){
   if (json.indexOf(name) == npos) return json.substring(0,0);
   start = json.indexOf(name) + name.length() + 1;
   next = json.charAt(start);
+  
+  while(start < json.length() && next == ' ') { // filters blanks before value if there
+    start++;
+    next = json.charAt(start);
+  }
+  
   if(next == '\"'){
     //Serial.println(".. a string");
     start = start + 1;
@@ -110,6 +116,45 @@ String jsonExtract(const String& json, const String& nameArg){
     }
     stop = i + 1;
   }
+  else if(next == 't'){
+	//Serial.println("... a boolean true");
+	int i = start;
+	
+	while(i++ < json.length()){
+		if(json.charAt(i) == 't' && json.charAt(i + 1) == 'r' && json.charAt(i + 2) == 'u' && json.charAt(i + 3) == 'e')
+		{
+			stop = i + 3;
+			break;
+		}
+		else if (json.charAt(i) == ',' || json.charAt(i) == '}' || json.charAt(i) == ']' || json.charAt(i) == ']') {
+			stop = i;
+			break;
+		}
+	}
+  } 
+  else if(next == 'f' ){
+	//Serial.println("... a boolean false");
+    int i = start;
+	
+	if(json.charAt(i) == 'f' && json.charAt(i + 1) == 'a' && json.charAt(i + 2) == 'l' && json.charAt(i + 3) == 's' && json.charAt(i + 4) == 'e')
+	{
+		stop = i + 4;
+	}
+	else {
+		stop = i;
+	}	
+  } 
+  else if(next == 'n' ){
+	//Serial.println("... a null");
+    int i = start;
+	if(json.charAt(i) == 'n' && json.charAt(i + 1) == 'u' && json.charAt(i + 2) == 'l' && json.charAt(i + 3) == 'l')
+	{
+		stop = i + 3;
+	}
+	else {
+		stop = i;
+	}
+  }  
   else if(next == '.' || next == '-' || ('0' <= next  && next <= '9')){
     //Serial.println(".. a number");
     int i = start;

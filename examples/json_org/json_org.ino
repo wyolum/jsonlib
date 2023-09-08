@@ -17,7 +17,8 @@ String json = String(
 "                        \"para\": \"A meta-markup language, used to create markup languages such as DocBook.\","
 "						\"GlossSeeAlso\": [\"GML\", \"XML\"]"
 "                    },"
-"					\"GlossSee\": \"markup\""
+"					\"GlossSee\": \"markup\","
+"					\"IsAvailable\": false"
 "                }"
 "            }"
 "        }"
@@ -33,6 +34,8 @@ void setup(){
   String glossdiv = jsonExtract(glossary, "GlossDiv");
   String glossentry = jsonExtract(glossdiv, "GlossEntry");
   String glossterm = jsonExtract(glossentry, "GlossTerm");
+  bool isAvailable = jsonExtract(glossentry, "IsAvailable") == "true";
+	
   Serial.print("GlossTerm:");
   Serial.println(glossterm);
 }
