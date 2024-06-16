@@ -1,6 +1,6 @@
 {
   "name": "jsonlib",
-  "description": "Simple JSON parsing library for arduino"
+  "description": "Simple JSON parsing library for arduino",
   "keywords": "json arduino",
   "authors": {
     "name": "Justin Shaw",
