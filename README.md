@@ -2,12 +2,14 @@ jsonlib
 =======
 Simple JSON parsing library for arduino.
 
+Fork of [wyolum/jsonlib](https://github.com/wyolum/jsonlib) with string-aware parsing:
+escaped quotes, commas and brackets inside string values no longer break key lookup
+or list splitting, keys are matched only at the level of the given object and
+whitespace is allowed anywhere between JSON tokens.
+
 ## Usage example
 
 ```c++
-  //Remove white space (outside of string literals) from json String
-  json = jsonRemoveWhiteSpace(json);
-  
   String posStr = jsonExtract(json, "coord");          // {"lon":-77.35,"lat":38.93}
   float lat = jsonExtract(posStr, "lat").toFloat();    // 38.93
   float lon = jsonExtract(posStr, "lon").toFloat();    // -77.35
@@ -23,28 +25,39 @@ Simple JSON parsing library for arduino.
 
 ## Reference
 
-### jsonRemoveWhiteSpace
-
+### jsonExtract
 ```c++
-String jsonRemoveWhiteSpace(String json);
+String jsonExtract(const String &json, const String &name);
 ```
 
-Returns a String with white space outside of string literals removed.  For instance
+Returns the value of key `name` from the JSON object in `json`. Only keys of this object
+are searched, not keys of nested objects; to reach a nested value, extract the nested
+object first:
+
 ```c++
-{"testing" : "one, two, three"} ==> {"testing":"one, two, three"}
+jsonExtract(jsonExtract(json, "main"), "temp");
 ```
+
+* string values are returned without quotes, escape sequences `\" \\ \/ \n \r \t \b \f`
+  are converted, `\uXXXX` is kept as is (UTF-8 text is passed through unchanged),
+* numbers, `true`, `false` and `null` are returned as written,
+* objects and arrays are returned as JSON text, ready for another `jsonExtract` / `jsonIndexList`.
+
+Returns an empty String if the key does not exist or `json` is not a JSON object.
 
 ### jsonIndexList
 
 ```c++
-String jsonIndexList(String json, int idx);
+String jsonIndexList(const String &json, int idx);
 ```
 
-Returns a String containing indexed item from provided String containing a json object.
+Returns item `idx` (0-based) of the JSON array in `json`, in the same form as `jsonExtract`.
+Returns an empty String if the index is out of range or `json` is not a JSON array.
 
-### jsonExtract
-```c++
-String jsonExtract(String json, String name);
-```
+## Changes from wyolum/jsonlib 0.1.3
 
-Returns a String containing the named item from provided String containing a json object. If name does not exist returns an empty String.
+* `jsonRemoveWhiteSpace` removed, whitespace is handled by the parser.
+* `jsonExtract` matches keys only at the level of the given object (previously the first
+  occurrence of `"name"` anywhere in the text was used, including nested objects and string values).
+* `jsonIndexList` returns string items without quotes and converts escapes, like `jsonExtract`.
+* `false` and `null` are returned complete (previously `fals` and `nul`).
