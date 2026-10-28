@@ -29,10 +29,10 @@ void setup(){
   Serial.begin(115200);
   Serial.println("Simple json library offered by wyolum.com\n\n");
   
-  json = jsonRemoveWhiteSpace(json);
   String glossary = jsonExtract(json, "glossary");
   String glossdiv = jsonExtract(glossary, "GlossDiv");
-  String glossentry = jsonExtract(glossdiv, "GlossEntry");
+  String glosslist = jsonExtract(glossdiv, "GlossList");
+  String glossentry = jsonExtract(glosslist, "GlossEntry");
   String glossterm = jsonExtract(glossentry, "GlossTerm");
   bool isAvailable = jsonExtract(glossentry, "IsAvailable") == "true";
 	

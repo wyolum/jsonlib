@@ -1,167 +1,167 @@
+/*
+ * jsonlib - Simple JSON parsing library for Arduino
+ *
+ * Original work: https://github.com/wyolum/jsonlib (Apache License 2.0)
+ * Modified by jjirasek, see jsonlib.h.
+ */
+
 #include "jsonlib.h"
 
-// remove all white space from the json string... preserving strings
-String jsonRemoveWhiteSpace(const String& json){
-  int i = 0;
-  int cursor = 0;
-  int quote_count = 0;
-  String out = String();
-  char out_chars[json.length()+1];
-  
-  for(i=0; i<json.length(); i++){
-    if(json[i] == ' ' || json[i] == '\n' || json[i] == '\t' || json[i] == '\r'){
-      if(quote_count % 2){ // inside a string
-	out_chars[cursor++] = json[i];
-      }
-      else{ // outside a string!
-      }
-    }
-    else{
-      if(json[i] == 34){ // ascii dounble quote
-	//check for escaped quote
-	if(i > 0 && json[i - 1] == '\\'){
-	  //escaped!
-	}
-	else{ // not escaped
-	  quote_count++;
-	}
-      }
-      out_chars[cursor++] = json[i];
+static bool isWs(char c) {
+  return c == ' ' || c == '\t' || c == '\n' || c == '\r';
+}
+
+static size_t skipWs(const char *s, size_t i, size_t n) {
+  while (i < n && isWs(s[i])) {
+    i++;
+  }
+  return i;
+}
+
+// s[i] == '"'; returns index just after the closing quote (or n if unterminated)
+static size_t skipString(const char *s, size_t i, size_t n) {
+  i++;
+  while (i < n) {
+    if (s[i] == '\\') {
+      i += 2;
+    } else if (s[i] == '"') {
+      return i + 1;
+    } else {
+      i++;
     }
   }
-  out_chars[cursor] = 0;
-  out = String(out_chars);
+  return n;
+}
+
+// returns index just after the value starting at s[i]
+static size_t skipValue(const char *s, size_t i, size_t n) {
+  if (i >= n) {
+    return n;
+  }
+  if (s[i] == '"') {
+    return skipString(s, i, n);
+  }
+  if (s[i] == '{' || s[i] == '[') {
+    int depth = 0;
+    while (i < n) {
+      char c = s[i];
+      if (c == '"') {
+        i = skipString(s, i, n);
+        continue;
+      }
+      if (c == '{' || c == '[') {
+        depth++;
+      } else if (c == '}' || c == ']') {
+        depth--;
+        if (depth == 0) {
+          return i + 1;
+        }
+      }
+      i++;
+    }
+    return n;
+  }
+  // number, true, false, null
+  while (i < n && s[i] != ',' && s[i] != '}' && s[i] != ']' && !isWs(s[i])) {
+    i++;
+  }
+  return i;
+}
+
+static String valueToString(const String &json, size_t start, size_t end) {
+  const char *s = json.c_str();
+  if (start >= end) {
+    return String();
+  }
+  if (s[start] != '"') {
+    return json.substring(start, end);
+  }
+  // string: strip quotes, convert escapes
+  size_t stop = end;
+  if (stop > start + 1 && s[stop - 1] == '"') {
+    stop--;
+  }
+  String out;
+  out.reserve(stop - start);
+  for (size_t i = start + 1; i < stop; i++) {
+    char c = s[i];
+    if (c == '\\' && i + 1 < stop) {
+      char e = s[++i];
+      switch (e) {
+        case 'n': out += '\n'; break;
+        case 'r': out += '\r'; break;
+        case 't': out += '\t'; break;
+        case 'b': out += '\b'; break;
+        case 'f': out += '\f'; break;
+        case 'u': out += '\\'; out += 'u'; break;   // \uXXXX kept literally
+        default:  out += e;    break;               // \" \\ \/
+      }
+    } else {
+      out += c;
+    }
+  }
   return out;
 }
 
-String jsonIndexList(const String& json, int idx){
-  int count = 1; // number of braces seen { = +1 } = -1
-  int i = 1;
-  int item_idx = 0;
-  int start = i;
-  int stop = json.length() - 1;
-  
-  while(i < json.length() && count > 0){
-    if(json.charAt(i) == ']' or json.charAt(i) == '}'){
-      count--;
+String jsonExtract(const String &json, const String &name) {
+  const char *s = json.c_str();
+  size_t n = json.length();
+  size_t i = skipWs(s, 0, n);
+  if (i >= n || s[i] != '{') {
+    return String();
+  }
+  i++;
+  while (true) {
+    i = skipWs(s, i, n);
+    if (i >= n || s[i] != '"') {
+      return String();                    // '}' (end of object) or malformed
     }
-    if(json.charAt(i) == '{' or json.charAt(i) == '['){
-      count++;
+    size_t keyStart = i + 1;
+    i = skipString(s, i, n);
+    size_t keyLen = (i > keyStart) ? i - 1 - keyStart : 0;
+    i = skipWs(s, i, n);
+    if (i >= n || s[i] != ':') {
+      return String();
     }
-    if(count == 1 && json.charAt(i) == ',' && item_idx == idx){
-      //item separator!
-      stop = i;
-      return json.substring(start, stop);
+    i = skipWs(s, i + 1, n);
+    size_t valStart = i;
+    size_t valEnd = skipValue(s, i, n);
+    if (keyLen == name.length() && memcmp(s + keyStart, name.c_str(), keyLen) == 0) {
+      return valueToString(json, valStart, valEnd);
     }
-    if(count == 1 && json.charAt(i) == ']' && item_idx == idx){ 
-	stop = i + 1;
-	return json.substring(start, stop);
-    }
-    if(count == 1 && json.charAt(i) == ','){
-      item_idx++;
-      start = i + 1;
+    i = skipWs(s, valEnd, n);
+    if (i >= n || s[i] != ',') {
+      return String();
     }
     i++;
   }
-  return json.substring(start, stop);
 }
 
-// return a sub-json struct
-String jsonExtract(const String& json, const String& nameArg){
-  char next;
-  int start = 0, stop = 0;
-  static const size_t npos = -1;
-  const String QUOTE = "\"";
-  
-  String name = QUOTE + nameArg + QUOTE;
-  if (json.indexOf(name) == npos) return json.substring(0,0);
-  start = json.indexOf(name) + name.length() + 1;
-  next = json.charAt(start);
-  
-  while(start < json.length() && next == ' ') { // filters blanks before value if there
-    start++;
-    next = json.charAt(start);
+String jsonIndexList(const String &json, int idx) {
+  const char *s = json.c_str();
+  size_t n = json.length();
+  if (idx < 0) {
+    return String();
   }
-  
-  if(next == '\"'){
-    //Serial.println(".. a string");
-    start = start + 1;
-    stop = json.indexOf('"', start);
+  size_t i = skipWs(s, 0, n);
+  if (i >= n || s[i] != '[') {
+    return String();
   }
-  else if(next == '['){
-    //Serial.println(".. a list");
-    int count = 1;
-    int i = start;
-    while(count > 0 && i++ < json.length()){
-      if(json.charAt(i) == ']'){
-	count--;
-      }
-      else if(json.charAt(i) == '['){
-	count++;
-      }
+  i++;
+  for (int k = 0; ; k++) {
+    i = skipWs(s, i, n);
+    if (i >= n || s[i] == ']') {
+      return String();
     }
-    stop = i + 1;
-  }
-  else if(next == '{'){
-    //Serial.println(".. a struct");
-    int count = 1;
-    int i = start;
-    while(count > 0 && i++ < json.length()){
-      if(json.charAt(i) == '}'){
-	count--;
-      }
-      else if(json.charAt(i) == '{'){
-	count++;
-      }
+    size_t valStart = i;
+    size_t valEnd = skipValue(s, i, n);
+    if (k == idx) {
+      return valueToString(json, valStart, valEnd);
     }
-    stop = i + 1;
-  }
-  else if(next == 't'){
-	//Serial.println("... a boolean true");
-	int i = start;
-	
-	while(i++ < json.length()){
-		if(json.charAt(i) == 't' && json.charAt(i + 1) == 'r' && json.charAt(i + 2) == 'u' && json.charAt(i + 3) == 'e')
-		{
-			stop = i + 3;
-			break;
-		}
-		else if (json.charAt(i) == ',' || json.charAt(i) == '}' || json.charAt(i) == ']' || json.charAt(i) == ']') {
-			stop = i;
-			break;
-		}
-	}
-  } 
-  else if(next == 'f' ){
-	//Serial.println("... a boolean false");
-    int i = start;
-	
-	if(json.charAt(i) == 'f' && json.charAt(i + 1) == 'a' && json.charAt(i + 2) == 'l' && json.charAt(i + 3) == 's' && json.charAt(i + 4) == 'e')
-	{
-		stop = i + 4;
-	}
-	else {
-		stop = i;
-	}	
-  } 
-  else if(next == 'n' ){
-	//Serial.println("... a null");
-    int i = start;
-	if(json.charAt(i) == 'n' && json.charAt(i + 1) == 'u' && json.charAt(i + 2) == 'l' && json.charAt(i + 3) == 'l')
-	{
-		stop = i + 3;
-	}
-	else {
-		stop = i;
-	}
-  }  
-  else if(next == '.' || next == '-' || ('0' <= next  && next <= '9')){
-    //Serial.println(".. a number");
-    int i = start;
-    while(i++ < json.length() && (json.charAt(i) == '.' || ('0' <= json.charAt(i)  && json.charAt(i) <= '9'))){
+    i = skipWs(s, valEnd, n);
+    if (i >= n || s[i] != ',') {
+      return String();
     }
-    stop = i;
+    i++;
   }
-  return json.substring(start, stop);
 }
-

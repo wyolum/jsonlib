@@ -74,13 +74,14 @@ void get_weather(){
   String weather_0 = jsonIndexList(jsonExtract(payload, String("weather")), 0);
   String wind = jsonExtract(payload, "wind");
   String sys = jsonExtract(payload, "sys");
-  
-  my_weather.temp = jsonExtract(payload, "temp").toFloat();
-  my_weather.feels_like = jsonExtract(payload, "feels_like").toFloat();
-  my_weather.temp_min = jsonExtract(payload, "temp_min").toFloat();
-  my_weather.temp_max = jsonExtract(payload, "temp_max").toFloat();
-  my_weather.pressure = jsonExtract(payload, "pressure").toFloat();
-  my_weather.humidity = jsonExtract(payload, "humidity").toFloat();
+  String mainObj = jsonExtract(payload, "main");
+
+  my_weather.temp = jsonExtract(mainObj, "temp").toFloat();
+  my_weather.feels_like = jsonExtract(mainObj, "feels_like").toFloat();
+  my_weather.temp_min = jsonExtract(mainObj, "temp_min").toFloat();
+  my_weather.temp_max = jsonExtract(mainObj, "temp_max").toFloat();
+  my_weather.pressure = jsonExtract(mainObj, "pressure").toFloat();
+  my_weather.humidity = jsonExtract(mainObj, "humidity").toFloat();
   my_weather.wind_speed = jsonExtract(wind, "speed").toFloat();
   my_weather.wind_deg = jsonExtract(wind, "deg").toFloat();
   my_weather.clouds_all = jsonExtract(jsonExtract(payload, "clouds"), "all").toFloat();
